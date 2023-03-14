@@ -27,8 +27,5 @@ internal class ProductConfiguration : BaseEntityConfiguration<Product>
         builder.HasOne(product => product.UnitOfMeasure)
             .WithMany()
             .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasMany(product => product.Prices)
-            .WithOne();
     }
 }

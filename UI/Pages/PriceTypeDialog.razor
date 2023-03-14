@@ -1,0 +1,55 @@
+@using ApplicationCore.DataModel
+@using ApplicationCore.Services
+@using FluentValidation
+@inject IValidator<PriceType> Validator
+@inject IPriceService PriceService
+
+<MudDialog>
+	<DialogContent>
+		<MudForm @ref="_form" Model="PriceType" Validation="Validator.FormValidate()">
+			<MudTextField Label="Name" Required="true"
+			              @bind-Value="PriceType.Name" For="@(() => PriceType.Name)"/>
+			<MudTextField Label="Description"
+			              @bind-Value="PriceType.Description" For="@(() => PriceType.Description)"/>
+			<MudTextField Label="External ID"
+			              @bind-Value="PriceType.ExternalId" For="@(() => PriceType.ExternalId)"/>
+		</MudForm>
+	</DialogContent>
+	<DialogActions>
+		<MudButton OnClick="CancelClicked">Cancel</MudButton>
+		<MudButton ButtonType="ButtonType.Submit" OnClick="SaveClicked">Save</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+
+	[CascadingParameter]
+	public required MudDialogInstance Dialog { get; set; }
+
+	[Parameter]
+	public PriceType PriceType { get; set; } = new() { Name = string.Empty };
+
+	MudForm _form = new();
+
+	void CancelClicked() => Dialog.Close();
+
+	async Task SaveClicked()
+	{
+		await _form.Validate();
+
+		if (_form.IsValid)
+		{
+			if (PriceType.Id != default)
+			{
+				PriceType = await PriceService.UpdatePriceType(PriceType);
+			}
+			else
+			{
+				PriceType = await PriceService.CreatePriceType(PriceType);
+			}
+
+			Dialog.Close(PriceType);
+		}
+	}
+
+}

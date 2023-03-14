@@ -1,0 +1,57 @@
+@using ApplicationCore.DataModel
+@using ApplicationCore.Services
+@using FluentValidation
+@inject IValidator<Product> Validator
+@inject IProductService ProductService
+
+<MudDialog>
+	<DialogContent>
+		<MudForm @ref="_form" Model="Product" Validation="Validator.FormValidate()">
+			<MudTextField Label="Product number" Required="true"
+			              @bind-Value="Product.ProductNumber" For="@(() => Product.ProductNumber)"/>
+			<MudTextField Label="Name"
+			              @bind-Value="Product.Name" For="@(() => Product.Name)"/>
+			<MudTextField Label="Unit of measure" Required="true"
+			              @bind-Value="Product.UnitOfMeasureName" For="@(() => Product.UnitOfMeasureName)"/>
+			<MudNumericField Label="Minimum order quantity"
+			                 @bind-Value="Product.MinimumOrderQuantity" For="@(() => Product.MinimumOrderQuantity)"/>
+		</MudForm>
+	</DialogContent>
+	<DialogActions>
+		<MudButton OnClick="CancelClicked">Cancel</MudButton>
+		<MudButton ButtonType="ButtonType.Submit" OnClick="SaveClicked">Save</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+
+	[CascadingParameter]
+	public required MudDialogInstance Dialog { get; set; }
+
+	[Parameter]
+	public Product Product { get; set; } = new() { ProductNumber = string.Empty };
+
+	MudForm _form = new();
+
+	void CancelClicked() => Dialog.Close();
+
+	async Task SaveClicked()
+	{
+		await _form.Validate();
+
+		if (_form.IsValid)
+		{
+			if (Product.Id != default)
+			{
+				Product = await ProductService.UpdateProductAsync(Product);
+			}
+			else
+			{
+				Product = await ProductService.CreateProductAsync(Product);
+			}
+
+			Dialog.Close(Product);
+		}
+	}
+
+}

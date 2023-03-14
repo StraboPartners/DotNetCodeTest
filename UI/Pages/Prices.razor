@@ -1,0 +1,96 @@
+@page "/Prices"
+@using ApplicationCore.DataModel
+@using ApplicationCore.Services
+@inject IPriceService PriceService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Prices</PageTitle>
+<MudDataGrid Items="_prices" @ref="_grid" ShowMenuIcon="true" MultiSelection="true"
+             Filterable="true" FilterMode="DataGridFilterMode.ColumnFilterMenu"
+             FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
+             Striped="true" Bordered="true" Hideable="true" ColumnResizeMode="ResizeMode.Column" FixedHeader="true">
+	<ToolBarContent>
+		<MudText Typo="Typo.h5">Prices</MudText>
+		<MudSpacer/>
+		<MudButton Variant="Variant.Text" Color="Color.Success" StartIcon="@Icons.Material.Filled.Add" Class="mx-1"
+		           OnClick="NewClicked">
+			New
+		</MudButton>
+		<MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" Class="mx-1"
+		           OnClick="DeleteClicked">
+			Delete
+		</MudButton>
+		<MudIconButton Variant="Variant.Text" Color="Color.Info" Icon="@Icons.Material.Filled.Refresh"
+		               OnClick="RefreshGrid"/>
+	</ToolBarContent>
+	<Columns>
+		<SelectColumn T="Price" ShowInFooter="false"/>
+		<Column T="Price" Title="ID">
+			<CellTemplate>
+				<MudLink Href="@($"/Products/{context.Item.Id}")">@context.Item.Id</MudLink>
+			</CellTemplate>
+		</Column>
+		<Column T="Price" Field="ProductId" Title="Product ID"/>
+		<Column T="Price" Field="PriceTypeName" Title="Price type"/>
+		<Column T="Price" Field="Amount" Title="Amount"/>
+		<Column T="Price" Field="UnitOfMeasureName" Title="Unit of measure"/>
+		<Column T="Price" Field="QuantityFrom" Title="Quantity from"/>
+		<Column T="Price" Field="QuantityTo" Title="Quantity to"/>
+		<Column T="Price" Field="FromDate" Title="From date"/>
+		<Column T="Price" Field="ToDate" Title="To date"/>
+		<Column T="Price" Title="Edit" Filterable="false" Sortable="false" Hideable="false">
+			<CellTemplate>
+				<MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => EditClicked(context.Item))"/>
+			</CellTemplate>
+		</Column>
+	</Columns>
+</MudDataGrid>
+
+@code {
+	List<Price> _prices = new();
+	MudDataGrid<Price> _grid = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+
+		_prices = await PriceService.GetAllPrices();
+	}
+
+	async Task RefreshGrid()
+	{
+		_prices = await PriceService.GetAllPrices();
+	}
+
+	async Task NewClicked()
+	{
+		var dialog = await DialogService.ShowAsync<PriceDialog>("Create price");
+		var result = await dialog.Result;
+
+		if (result.Data is Price createdPrice)
+		{
+			_prices.Add(createdPrice);
+			_prices = _prices.OrderBy(price => price.Id).ToList();
+			Snackbar.Add($"Product {createdPrice.Id} created", Severity.Success);
+		}
+	}
+
+	async Task EditClicked(Price price)
+	{
+		var dialog = await DialogService.ShowAsync<PriceDialog>("Update price",
+			new DialogParameters
+			{
+				{ "Price", price }
+			});
+		await dialog.Result;
+		Snackbar.Add("Price updated", Severity.Success);
+	}
+
+	async Task DeleteClicked()
+	{
+		await PriceService.DeletePrices(_grid.SelectedItems.Select(price => price.Id).ToHashSet());
+		_prices.RemoveAll(product => _grid.SelectedItems.Contains(product));
+	}
+
+}

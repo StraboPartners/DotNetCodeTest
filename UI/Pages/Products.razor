@@ -1,19 +1,89 @@
-﻿@page "/products"
-@using ApplicationCore.DataModel;
+﻿@page "/Products"
+@using ApplicationCore.DataModel
+@using ApplicationCore.Services
+@inject IProductService ProductService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <PageTitle>Products</PageTitle>
-<MudDataGrid Items="_products">
-
+<MudDataGrid Items="_products" @ref="_grid" ShowMenuIcon="true" MultiSelection="true"
+             Filterable="true" FilterMode="DataGridFilterMode.ColumnFilterMenu" 
+             FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
+             Striped="true" Bordered="true" Hideable="true" ColumnResizeMode="ResizeMode.Column" FixedHeader="true">
+	<ToolBarContent>
+		<MudText Typo="Typo.h5">Products</MudText>
+		<MudSpacer/>
+		<MudButton Variant="Variant.Text" Color="Color.Success" StartIcon="@Icons.Material.Filled.Add" Class="mx-1" 
+		           OnClick="NewClicked">New</MudButton>
+		<MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" Class="mx-1" 
+		           OnClick="DeleteClicked">Delete</MudButton>
+		<MudIconButton Variant="Variant.Text" Color="Color.Info" Icon="@Icons.Material.Filled.Refresh" 
+		               OnClick="RefreshGrid"/>
+	</ToolBarContent>
+	<Columns>
+		<SelectColumn T="Product" ShowInFooter="false"/>
+		<Column T="Product" Title="ID">
+			<CellTemplate>
+				<MudLink Href="@($"/Products/{context.Item.Id}")">@context.Item.Id</MudLink>
+			</CellTemplate>
+		</Column>
+		<Column T="Product" Field="ProductNumber" Title="Product number"/>
+		<Column T="Product" Field="Name" Title="Name"/>
+		<Column T="Product" Field="UnitOfMeasureName" Title="Unit of measure"/>
+		<Column T="Product" Field="MinimumOrderQuantity" Title="Minimum order quantity"/>
+		<Column T="Product" Title="Edit" Filterable="false" Sortable="false" Hideable="false">
+			<CellTemplate>
+				<MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => EditClicked(context.Item))"/>
+			</CellTemplate>
+		</Column>
+	</Columns>
 </MudDataGrid>
 
 @code {
 
-    List<Product> _products = new();
+	List<Product> _products = new();
+	MudDataGrid<Product> _grid = new();
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
 
-        _products = await
-    }
+		_products = await ProductService.GetAllProductsAsync();
+	}
+
+	async Task RefreshGrid()
+	{
+		_products = await ProductService.GetAllProductsAsync();
+	}
+
+	async Task NewClicked()
+	{
+		var dialog = await DialogService.ShowAsync<ProductDialog>("Create product");
+		var result = await dialog.Result;
+
+		if (result.Data is Product createdProduct)
+		{
+			_products.Add(createdProduct);
+			_products = _products.OrderBy(product => product.Id).ToList();
+			Snackbar.Add($"Product {createdProduct.ProductNumber} created", Severity.Success);
+		}
+	}
+
+	async Task EditClicked(Product product)
+	{
+		var dialog = await DialogService.ShowAsync<ProductDialog>("Update product",
+			new DialogParameters
+			{
+				{ "Product", product }
+			});
+		await dialog.Result;
+		Snackbar.Add("Product updated", Severity.Success);
+	}
+
+	async Task DeleteClicked()
+	{
+		await ProductService.DeleteProductsAsync(_grid.SelectedItems.Select(product => product.Id).ToHashSet());
+		_products.RemoveAll(product => _grid.SelectedItems.Contains(product));
+	}
+
 }

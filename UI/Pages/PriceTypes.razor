@@ -1,0 +1,78 @@
+@page "/Setup/PriceTypes"
+@using ApplicationCore.DataModel
+@using ApplicationCore.Services
+@inject IPriceService PriceService
+@inject IDialogService DialogService
+
+<PageTitle>Price types</PageTitle>
+<MudDataGrid Items="_priceTypes" @ref="_grid" ShowMenuIcon="true" MultiSelection="true"
+             Filterable="true" FilterMode="DataGridFilterMode.ColumnFilterMenu" FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
+             Striped="true" Bordered="true" Hideable="true" ColumnResizeMode="ResizeMode.Column" FixedHeader="true">
+	<ToolBarContent>
+		<MudText Typo="Typo.h5">Price types</MudText>
+		<MudSpacer/>
+		<MudButton Variant="Variant.Text" Color="Color.Success" StartIcon="@Icons.Material.Filled.Add" Class="mx-1" OnClick="NewClicked">New</MudButton>
+		<MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" Class="mx-1" OnClick="DeleteClicked">Delete</MudButton>
+		<MudIconButton Variant="Variant.Text" Color="Color.Info" Icon="@Icons.Material.Filled.Refresh" OnClick="RefreshGrid"/>
+	</ToolBarContent>
+	<Columns>
+		<SelectColumn T="PriceType" ShowInFooter="false"/>
+		<Column T="PriceType" Title="Name">
+			<CellTemplate>
+				<MudLink Href="@($"/Products/{context.Item.Name}")">@context.Item.Name</MudLink>
+			</CellTemplate>
+		</Column>
+		<Column T="PriceType" Field="Description" Title="Description"/>
+		<Column T="PriceType" Field="ExternalId" Title="External ID"/>
+		<Column T="PriceType" Title="Edit" Filterable="false" Sortable="false" Hideable="false">
+			<CellTemplate>
+				<MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => EditClicked(context.Item))"/>
+			</CellTemplate>
+		</Column>
+	</Columns>
+</MudDataGrid>
+
+@code {
+	List<PriceType> _priceTypes = new();
+	MudDataGrid<PriceType> _grid = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+
+		_priceTypes = await PriceService.GetAllPriceTypes();
+	}
+
+	async Task RefreshGrid()
+	{
+		
+	}
+
+	async Task NewClicked()
+	{
+		var dialog = await DialogService.ShowAsync<PriceTypeDialog>("Create rpice type");
+		var result = await dialog.Result;
+
+		if (result.Data is PriceType createdPriceType)
+		{
+			_priceTypes.Add(createdPriceType);
+			_priceTypes = _priceTypes.OrderBy(priceType => priceType.Name).ToList();
+		}
+	}
+
+	async Task EditClicked(PriceType priceType)
+	{
+		var dialog = await DialogService.ShowAsync<PriceTypeDialog>("Update price type",
+			new DialogParameters
+			{
+				{ "PriceType", priceType }
+			});
+		await dialog.Result;
+	}
+
+	async Task DeleteClicked()
+	{
+		await PriceService.DeletePriceTypes(_grid.SelectedItems.Select(priceType => priceType.Id).ToHashSet());
+		_priceTypes.RemoveAll(priceType => _grid.SelectedItems.Contains(priceType));
+	}
+}
