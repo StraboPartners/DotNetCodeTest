@@ -50,7 +50,7 @@
 
 	async Task NewClicked()
 	{
-		var dialog = await DialogService.ShowAsync<PriceTypeDialog>("Create rpice type");
+		var dialog = await DialogService.ShowAsync<PriceTypeDialog>("Create price type");
 		var result = await dialog.Result;
 
 		if (result.Data is PriceType createdPriceType)
