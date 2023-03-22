@@ -15,6 +15,6 @@ internal class UnitOfMeasureConfiguration : BaseEntityConfiguration<UnitOfMeasur
             .HasMaxLength(80);
 
         builder.Property(uom => uom.ExternalId)
-            .HasMaxLength(4);
+            .HasMaxLength(8);
     }
 }
