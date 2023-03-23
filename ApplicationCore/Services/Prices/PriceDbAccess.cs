@@ -23,11 +23,22 @@ public class PriceDbAccess : IPriceDbAccess
 
 	public async Task<Price> CreatePrice(Price price)
 	{
-		await using var context = await _dbContextFactory.CreateDbContextAsync();
-		context.Prices.Add(price);
-		await context.SaveChangesAsync();
-		return price;
-	}
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+
+        var existingPrice = await context.Prices
+            .Where(p => p.ProductId == price.ProductId)
+            .FirstOrDefaultAsync();
+
+        if (existingPrice != null)
+        {
+            throw new InvalidOperationException($"A price with Id '{price.Id}' already exists for the product with Id '{price.ProductId}'.");
+        }
+
+        context.Prices.Add(price);
+        await context.SaveChangesAsync();
+
+        return price;
+    }
 
 	public async Task<Price> UpdatePrice(Price price)
 	{
