@@ -1,0 +1,74 @@
+@page "/Setup/UnitsOfMeasure"
+@using ApplicationCore.DataModel
+@using ApplicationCore.Services
+@inject IUnitOfMeasureService UnitOfMeasureService
+@inject IDialogService DialogService
+
+<PageTitle>Units of Measure</PageTitle>
+<MudDataGrid Items="_unitsOfMeasure" @ref="_grid" ShowMenuIcon="true" MultiSelection="true"
+             Filterable="true" FilterMode="DataGridFilterMode.ColumnFilterMenu" FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
+             Striped="true" Bordered="true" Hideable="true" ColumnResizeMode="ResizeMode.Column" FixedHeader="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h5">Units Of Measure</MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Text" Color="Color.Success" StartIcon="@Icons.Material.Filled.Add" Class="mx-1" OnClick="NewClicked">New</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" Class="mx-1" OnClick="DeleteClicked">Delete</MudButton>
+        <MudIconButton Variant="Variant.Text" Color="Color.Info" Icon="@Icons.Material.Filled.Refresh" OnClick="RefreshGrid" />
+    </ToolBarContent>
+    <Columns>
+        <SelectColumn T="ApplicationCore.DataModel.UnitOfMeasure" ShowInFooter="false" />
+        <Column T="ApplicationCore.DataModel.UnitOfMeasure" Field="Id" Title="Id" />
+        <Column T="ApplicationCore.DataModel.UnitOfMeasure" Field="Name" Title="Name" />
+        <Column T="ApplicationCore.DataModel.UnitOfMeasure" Field="Description" Title="Description" />
+        <Column T="ApplicationCore.DataModel.UnitOfMeasure" Field="ExternalId" Title="External ID" />
+        <Column T="ApplicationCore.DataModel.UnitOfMeasure" Title="Edit" Filterable="false" Sortable="false" Hideable="false">
+            <CellTemplate>
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => EditClicked(context.Item))" />
+            </CellTemplate>
+        </Column>
+    </Columns>
+</MudDataGrid>
+
+@code {
+    List<ApplicationCore.DataModel.UnitOfMeasure> _unitsOfMeasure = new();
+    MudDataGrid<ApplicationCore.DataModel.UnitOfMeasure> _grid = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _unitsOfMeasure = await UnitOfMeasureService.GetAllUnitsOfMeasureAsync();
+    }
+
+    async Task RefreshGrid()
+    {
+
+    }
+    async Task NewClicked()
+    {
+        var dialog = await DialogService.ShowAsync<UnitOfMeasureDialog>("Create Unit of Measure");
+        var result = await dialog.Result;
+
+        if (result.Data is ApplicationCore.DataModel.UnitOfMeasure createdUom)
+        {
+            _unitsOfMeasure.Add(createdUom);
+            _unitsOfMeasure = _unitsOfMeasure.OrderBy(uom => uom.Name).ToList();
+        }
+    }
+
+    async Task EditClicked(ApplicationCore.DataModel.UnitOfMeasure uom)
+    {
+        var dialog = await DialogService.ShowAsync<UnitOfMeasureDialog>("Update Unit of Measurement",
+            new DialogParameters
+            {
+                { "UnitOfMeasure", uom }
+            });
+        await dialog.Result;
+    }
+
+    async Task DeleteClicked()
+    {
+        await UnitOfMeasureService.DeleteUnitsOfMeasure(_grid.SelectedItems.Select(uom => uom.Id).ToHashSet());
+        _unitsOfMeasure.RemoveAll(uom => _grid.SelectedItems.Contains(uom));
+    }
+}

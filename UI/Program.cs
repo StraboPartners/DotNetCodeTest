@@ -22,6 +22,8 @@ builder.Services.TryAddScoped<IProductService, ProductService>();
 builder.Services.TryAddScoped<IProductDbAccess, ProductDbAccess>();
 builder.Services.TryAddScoped<IPriceService, PriceService>();
 builder.Services.TryAddScoped<IPriceDbAccess, PriceDbAccess>();
+builder.Services.TryAddScoped<IUnitOfMeasureService, UnitOfMeasureService>();
+builder.Services.TryAddScoped<IUnitOfMeasureDbAccess, UnitOfMeasureDbAccess>();
 builder.Services.AddValidatorsFromAssembly(typeof(ProductValidator).Assembly);
 
 var app = builder.Build();
