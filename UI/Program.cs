@@ -13,7 +13,7 @@ builder.Services.AddMudServices();
 
 builder.Services.AddPooledDbContextFactory<StraboContext>(options =>
 {
-	options.UseNpgsql("Host=localhost;Database=strabocodetest;Username=strabo;Password=strabo")
+	options.UseNpgsql("Host=localhost;Database=strabocodetest;Username=postgres;Password=admin")
 		.EnableDetailedErrors()
 		.EnableSensitiveDataLogging();
 });
