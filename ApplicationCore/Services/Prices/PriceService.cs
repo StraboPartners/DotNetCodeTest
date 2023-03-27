@@ -23,11 +23,27 @@ public class PriceService : IPriceService
 	public Task<int> DeletePrices(HashSet<long> priceIds) 
 		=> _priceDbAccess.DeletePrices(priceIds);
 
-	public Task<List<PriceType>> GetAllPriceTypes() => _priceDbAccess.GetAllPriceTypes();
+	public Task<List<PriceType>> GetAllPriceTypes()
+		=> _priceDbAccess.GetAllPriceTypes();
 
-	public Task<PriceType> CreatePriceType(PriceType priceType) => _priceDbAccess.CreatePriceType(priceType);
+	public Task<PriceType> CreatePriceType(PriceType priceType)
+		=> _priceDbAccess.CreatePriceType(priceType);
 
-	public Task<PriceType> UpdatePriceType(PriceType priceType) => _priceDbAccess.UpdatePriceType(priceType);
+	public Task<PriceType> UpdatePriceType(PriceType priceType)
+		=> _priceDbAccess.UpdatePriceType(priceType);
 
-	public Task<int> DeletePriceTypes(HashSet<long> priceTypeIds) => _priceDbAccess.DeletePriceTypes(priceTypeIds);
+	public Task<int> DeletePriceTypes(HashSet<long> priceTypeIds)
+		=> _priceDbAccess.DeletePriceTypes(priceTypeIds);
+
+	public Task<List<UnitOfMeasure>> GetAllUnitsOfMeasure()
+		=> _priceDbAccess.GetAllUnitsOfMeasure();
+
+	public Task<UnitOfMeasure> CreateUnitOfMeasure(UnitOfMeasure unitOfMeasure)
+		=> _priceDbAccess.CreateUnitOfMeasure(unitOfMeasure);
+
+	public Task<UnitOfMeasure> UpdateUnitOfMeasure(UnitOfMeasure unitOfMeasure)
+		=> _priceDbAccess.UpdateUnitOfMeasure(unitOfMeasure);
+
+	public Task<int> DeleteUnitsOfMeasure(HashSet<long> unitOfMeasureIds)
+		=> _priceDbAccess.DeleteUnitsOfMeasure(unitOfMeasureIds);
 }

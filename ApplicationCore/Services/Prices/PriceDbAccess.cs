@@ -74,4 +74,34 @@ public class PriceDbAccess : IPriceDbAccess
 			.Where(priceType => priceTypeIds.Contains(priceType.Id))
 			.ExecuteDeleteAsync();
 	}
+
+	public async Task<List<UnitOfMeasure>> GetAllUnitsOfMeasure()
+	{
+		var context = await _dbContextFactory.CreateDbContextAsync();
+		return await context.UnitsOfMeasure.OrderBy(unitOfMeasure => unitOfMeasure.Name).ToListAsync();
+	}
+
+	public async Task<UnitOfMeasure> CreateUnitOfMeasure(UnitOfMeasure unitOfMeasure)
+	{
+		await using var context = await _dbContextFactory.CreateDbContextAsync();
+		context.UnitsOfMeasure.Add(unitOfMeasure);
+		await context.SaveChangesAsync();
+		return unitOfMeasure;
+	}
+
+	public async Task<UnitOfMeasure> UpdateUnitOfMeasure(UnitOfMeasure unitOfMeasure)
+	{
+		await using var context = await _dbContextFactory.CreateDbContextAsync();
+		context.UnitsOfMeasure.Update(unitOfMeasure);
+		await context.SaveChangesAsync();
+		return unitOfMeasure;
+	}
+
+	public async Task<int> DeleteUnitsOfMeasure(HashSet<long> unitOfMeasureIds)
+	{
+		await using var context = await _dbContextFactory.CreateDbContextAsync();
+		return await context.UnitsOfMeasure
+			.Where(unitOfMeasure => unitOfMeasureIds.Contains(unitOfMeasure.Id))
+			.ExecuteDeleteAsync();
+	}
 }
