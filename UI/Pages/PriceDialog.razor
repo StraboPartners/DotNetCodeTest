@@ -3,17 +3,35 @@
 @using FluentValidation
 @inject IPriceService PriceService
 @inject IValidator<Price> Validator
+@inject IProductService ProductService
 
 <MudDialog>
 	<DialogContent>
 		<MudForm @ref="_form" Model="Price" Validation="Validator.FormValidate()">
-			<MudNumericField Label="Product ID" Required="true"
-			                 @bind-Value="Price.ProductId" For="@(() => Price.ProductId)"/>
+			@if (productList == null)
+			{
+				<p><em>Loading Product Ids...</em></p>
+			}
+			else
+			{
+				<MudSelect T="long" Label="Product ID" Variant="Variant.Text"
+					   @bind-Value="Price.ProductId" For="@(() => Price.ProductId)">
+					@foreach (var product in productList)
+					{
+						<MudSelectItem T="long"
+							   Value="@product.Id">
+							Number: @product.ProductNumber.ToString()
+							Id: @product.Id.ToString()
+						</MudSelectItem>
+					}
+				</MudSelect>
+			}
+
 			<MudTextField Label="Price type" Required="true"
-			              @bind-Value="Price.PriceTypeName" For="@(() => Price.PriceTypeName)"/>
+						  @bind-Value="Price.PriceTypeName" For="@(() => Price.PriceTypeName)"/>
 			<MudNumericField Label="Amount" bind-Value="Price.Amount" For="@(() => Price.Amount)"/>
 			<MudTextField Label="Unit of measure"
-			              @bind-Value="Price.UnitOfMeasureName" For="@(() => Price.UnitOfMeasureName)"/>
+						  @bind-Value="Price.UnitOfMeasureName" For="@(() => Price.UnitOfMeasureName)"/>
 			<MudNumericField Label="Quantity from" @bind-Value="Price.QuantityFrom" For="@(() => Price.QuantityFrom)"/>
 			<MudNumericField Label="Quantity to" @bind-Value="Price.QuantityTo" For="@(() => Price.QuantityTo)"/>
 			<MudDatePicker Label="From date" @bind-Date="FromDateTime" For="@(() => FromDateTime)"></MudDatePicker>
@@ -33,14 +51,22 @@
 	[Parameter]
 	public Price Price { get; set; } = new() { ProductId = default, PriceTypeName = string.Empty, UnitOfMeasureName = string.Empty};
 
+	List<Product>? productList;
+
 	MudForm _form = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		productList = await ProductService.GetAllProductsAsync();
+		this.StateHasChanged();
+	}
 
 	private DateTime? FromDateTime
 	{
 		get => Price.FromDate?.ToDateTime(TimeOnly.MinValue);
 		set => Price.FromDate = value is not null ? DateOnly.FromDateTime(value.Value) : null;
 	}
-	
+
 	private DateTime? ToDateTime
 	{
 		get => Price.ToDate?.ToDateTime(TimeOnly.MinValue);
@@ -48,6 +74,7 @@
 	}
 
 	void CancelClicked() => Dialog.Close();
+
 
 	async Task SaveClicked()
 	{
