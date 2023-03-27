@@ -23,6 +23,6 @@ public sealed class PriceTypeConfiguration : BaseEntityConfiguration<PriceType>
             .HasMaxLength(80);
 
         builder.Property(priceType => priceType.ExternalId)
-            .HasMaxLength(4);
+            .HasMaxLength(7);
     }
 }

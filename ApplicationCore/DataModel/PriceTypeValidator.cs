@@ -14,6 +14,6 @@ public class PriceTypeValidator : AbstractValidator<PriceType>
 			.MaximumLength(80);
 
 		RuleFor(priceType => priceType.ExternalId)
-			.MaximumLength(4);
+			.MaximumLength(7);
 	}
 }
