@@ -1,0 +1,55 @@
+﻿@using ApplicationCore.DataModel
+@using ApplicationCore.Services
+@using FluentValidation
+@inject IValidator<UnitOfMeasure> Validator
+@inject IUnitOfMeasureService UnitOfMeasureService
+
+<MudDialog>
+	<DialogContent>
+		<MudForm @ref="_form" Model="UnitOfMeasure" Validation="Validator.FormValidate()">
+			<MudTextField Label="Name" Required="true"
+						  @bind-Value="UnitOfMeasure.Name" For="@(() => UnitOfMeasure.Name)" />
+			<MudTextField Label="Description"
+						  @bind-Value="UnitOfMeasure.Description" For="@(() => UnitOfMeasure.Description)" />
+			<MudTextField Label="External ID"
+						  @bind-Value="UnitOfMeasure.ExternalId" For="@(() => UnitOfMeasure.ExternalId)" />
+		</MudForm>
+	</DialogContent>
+	<DialogActions>
+		<MudButton OnClick="CancelClicked">Cancel</MudButton>
+		<MudButton ButtonType="ButtonType.Submit" OnClick="SaveClicked">Save</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+
+	[CascadingParameter]
+	public required MudDialogInstance Dialog { get; set; }
+
+	[Parameter]
+	public UnitOfMeasure UnitOfMeasure { get; set; } = new() { Name = string.Empty };
+
+	MudForm _form = new();
+
+	void CancelClicked() => Dialog.Close();
+
+	async Task SaveClicked()
+	{
+		await _form.Validate();
+
+		if (_form.IsValid)
+		{
+			if (UnitOfMeasure.Id != default)
+			{
+				UnitOfMeasure = await UnitOfMeasureService.UpdateUnitOfMeasureAsync(UnitOfMeasure);
+			}
+			else
+			{
+				UnitOfMeasure = await UnitOfMeasureService.CreateUnitOfMeasureAsync(UnitOfMeasure);
+			}
+
+			Dialog.Close(UnitOfMeasure);
+		}
+	}
+
+}
