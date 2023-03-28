@@ -2,16 +2,26 @@
 @using ApplicationCore.Services
 @using FluentValidation
 @inject IPriceService PriceService
+@inject IProductService ProductService
 @inject IValidator<Price> Validator
 
 <MudDialog>
 	<DialogContent>
 		<MudForm @ref="_form" Model="Price" Validation="Validator.FormValidate()">
-			<MudNumericField Label="Product ID" Required="true"
-			                 @bind-Value="Price.ProductId" For="@(() => Price.ProductId)"/>
+			@*<MudNumericField Label="Product ID" Required="true"
+			                 @bind-Value="Price.ProductId" For="@(() => Price.ProductId)"/>*@
+			<MudSelect Label="Product" Required="true" @bind-Value="Price.ProductId" For="@(() => Price.ProductId)">
+				@if (products != null)
+				{
+					foreach (var product in products)
+					{
+						<MudSelectItem TValue="string" Value="@product.Id">@($"{product.Id}: {product.ProductNumber} - {product.Name}")</MudSelectItem>
+					}
+				}
+			</MudSelect>
 			<MudTextField Label="Price type" Required="true"
 			              @bind-Value="Price.PriceTypeName" For="@(() => Price.PriceTypeName)"/>
-			<MudNumericField Label="Amount" bind-Value="Price.Amount" For="@(() => Price.Amount)"/>
+			<MudNumericField Label="Amount" @bind-Value="Price.Amount" For="@(() => Price.Amount)"/>
 			<MudTextField Label="Unit of measure"
 			              @bind-Value="Price.UnitOfMeasureName" For="@(() => Price.UnitOfMeasureName)"/>
 			<MudNumericField Label="Quantity from" @bind-Value="Price.QuantityFrom" For="@(() => Price.QuantityFrom)"/>
@@ -34,6 +44,13 @@
 	public Price Price { get; set; } = new() { ProductId = default, PriceTypeName = string.Empty, UnitOfMeasureName = string.Empty};
 
 	MudForm _form = new();
+
+	private List<Product> products;
+
+	protected override async Task OnInitializedAsync()
+	{
+		products = await ProductService.GetAllProductsAsync();
+	}
 
 	private DateTime? FromDateTime
 	{
