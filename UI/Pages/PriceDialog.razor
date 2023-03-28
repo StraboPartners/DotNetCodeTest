@@ -8,8 +8,6 @@
 <MudDialog>
 	<DialogContent>
 		<MudForm @ref="_form" Model="Price" Validation="Validator.FormValidate()">
-			@*<MudNumericField Label="Product ID" Required="true"
-			                 @bind-Value="Price.ProductId" For="@(() => Price.ProductId)"/>*@
 			<MudSelect Label="Product" Required="true" @bind-Value="Price.ProductId" For="@(() => Price.ProductId)">
 				@if (products != null)
 				{
